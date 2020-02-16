@@ -4,7 +4,7 @@ const agent = supergoose(server.authServer);
 const Users = require('../models/users.js');
 const base64 = require('base-64');
 
-describe('auth server', () => {
+describe('auth server routes', () => {
   let signinObj;
   let signinObj2;
 
@@ -79,4 +79,13 @@ describe('auth server', () => {
       expect(response.body).toEqual({});
     });
   });
+
+  // it('can allow someone to sign in with oauth', async () => {
+  //   const user1 = new Users(signinObj);
+  //   await user1.save(signinObj);
+
+  //   return agent.get('/oauth').then(response => {
+  //     console.log('Do we have a body?', response.body);
+  //   });
+  // });
 });

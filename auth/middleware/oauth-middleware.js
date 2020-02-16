@@ -7,10 +7,9 @@ const tokenServerURL = 'https://github.com/login/oauth/access_token';
 const remoteAPI = 'https://api.github.com/user';
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const API_SERVER = 'http:://localhost:3000/oauth';
+const API_SERVER = process.env.REDIRECT_URI;
 
 module.exports = async (req, res, next) => {
-  console.log('you are here...');
   try {
     let code = req.query.code;
     console.log('(1) CODE:', code);
@@ -43,7 +42,7 @@ async function exchangeCodeForToken(code) {
     grant_type: 'authorization_code',
   });
 
-  console.log(tokenServerResponse.body);
+  return tokenServerResponse.body.access_token;
 }
 
 async function getRemoteUser(token) {
