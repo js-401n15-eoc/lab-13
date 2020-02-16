@@ -3,33 +3,36 @@
 const express = require('express');
 const authRouter = express.Router();
 
-const User = require('./users-model.js');
-const auth = require('./middleware.js');
-const oauth = require('./oauth/google.js');
+const users = require('./users.js');
+const basicAuth = require('./basic-auth-middleware.js');
+const oauth = require('./oauth/github.js');
 
-authRouter.post('/signup', (req, res, next) => {
-  let user = new User(req.body);
-  user.save()
-    .then( (user) => {
-      req.token = user.generateToken();
-      req.user = user;
-      res.set('token', req.token);
-      res.cookie('auth', req.token);
-      res.send(req.token);
-    }).catch(next);
+// echo '{"username":"john","password":"foo"}' | http post :3000/signup
+authRouter.post('/signup', async (req, res) => {
+
+  try {
+    let user = await users.save(req.body);
+    let token = users.generateToken(user);
+    res.status(200).send(token);
+  } catch (e) {
+    res.status(403).send("Error Creating User");
+  }
+
 });
 
-authRouter.post('/signin', auth, (req, res, next) => {
-  res.cookie('auth', req.token);
-  res.send(req.token);
+// http post :3000/signin -a john:foo
+authRouter.post('/signin', basicAuth, (req, res) => {
+  res.status(200).send(req.token);
 });
 
-authRouter.get('/oauth', (req,res,next) => {
-  oauth.authorize(req)
-    .then( token => {
-      res.status(200).send(token);
-    })
-    .catch(next);
+// Used as redirect by the oauth provider
+authRouter.get('/oauth', oauth, (req, res) => {
+  res.status(200).send(req.token);
+});
+
+// Will not work unless you send username/password as Basic
+authRouter.get('/users', basicAuth, (req, res) => {
+  res.status(200).json(users.list());
 });
 
 module.exports = authRouter;

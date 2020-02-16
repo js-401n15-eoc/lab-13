@@ -1,26 +1,23 @@
 'use strict';
 
-process.env.SECRET='test';
-
+const supergoose = require('@code-fellows/supergoose');
 const jwt = require('jsonwebtoken');
 
 const server = require('../../../src/app.js').server;
-const supergoose = require('../../supergoose.js');
 
-const mockRequest = supergoose.server(server);
+const mockRequest = supergoose(server);
 
 let users = {
-  admin: {username: 'admin', password: 'password', role: 'admin'},
-  editor: {username: 'editor', password: 'password', role: 'editor'},
-  user: {username: 'user', password: 'password', role: 'user'},
+  admin: { username: 'admin', password: 'password' },
+  editor: { username: 'editor', password: 'password' },
+  user: { username: 'user', password: 'password' },
 };
 
-beforeAll(supergoose.startDB);
-afterAll(supergoose.stopDB);
+let SECRET = 'myserverhasfleas';
 
 describe('Auth Router', () => {
 
-  Object.keys(users).forEach( userType => {
+  Object.keys(users).forEach(userType => {
 
     describe(`${userType} users`, () => {
 
@@ -30,9 +27,9 @@ describe('Auth Router', () => {
         return mockRequest.post('/signup')
           .send(users[userType])
           .then(results => {
-            var token = jwt.verify(results.text, process.env.SECRET);
+            let token = jwt.verify(results.text, SECRET);
             id = token.id;
-            expect(token.id).toBeDefined();
+            expect(token.username).toBeDefined();
           });
       });
 
@@ -40,8 +37,8 @@ describe('Auth Router', () => {
         return mockRequest.post('/signin')
           .auth(users[userType].username, users[userType].password)
           .then(results => {
-            var token = jwt.verify(results.text, process.env.SECRET);
-            expect(token.id).toEqual(id);
+            let token = jwt.verify(results.text, SECRET);
+            expect(token.username).toEqual(users[userType].username);
           });
       });
 
